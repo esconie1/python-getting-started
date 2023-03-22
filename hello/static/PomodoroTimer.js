@@ -1,12 +1,12 @@
 const { createElement, Component } = React;
 
-class PomodoroTimer extends React.Component {
+class PomodoroTimer extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      timeLeft: 25 * 60, // 25 minutes in seconds
+      startTime: null,
+      timeLeft: 25 * 60,
       isRunning: false,
-      status: 'work',
     };
     this.startTimer = this.startTimer.bind(this);
     this.stopTimer = this.stopTimer.bind(this);
@@ -15,11 +15,15 @@ class PomodoroTimer extends React.Component {
 
   componentDidMount() {
     this.intervalId = setInterval(() => {
-      if (this.state.isRunning && this.state.timeLeft > 0) {
-        this.setState({ timeLeft: this.state.timeLeft - 1 });
-      }
-      if (this.state.timeLeft == 0) {
-	      this.setState({status: 'break'});
+      if (this.state.isRunning) {
+        const currentTime = new Date();
+        const timeElapsed = Math.floor((currentTime - this.state.startTime) / 1000);
+        const timeLeft = 25 * 60 - timeElapsed;
+        if (timeLeft >= 0) {
+          this.setState({ timeLeft });
+        } else {
+          this.stopTimer();
+        }
       }
     }, 1000);
   }
@@ -29,7 +33,7 @@ class PomodoroTimer extends React.Component {
   }
 
   startTimer() {
-    this.setState({ isRunning: true });
+    this.setState({ startTime: new Date(), isRunning: true });
   }
 
   stopTimer() {
@@ -37,22 +41,23 @@ class PomodoroTimer extends React.Component {
   }
 
   resetTimer() {
-    this.setState({ timeLeft: 10, isRunning: false });
+    this.setState({ timeLeft: 25 * 60, isRunning: false });
   }
 
   render() {
     const minutes = Math.floor(this.state.timeLeft / 60);
     const seconds = this.state.timeLeft % 60;
 
-    return React.createElement("div", null, [
-      React.createElement("h1", null, `Pomodoro Timer ${this.state.status}`, this.state.status),
-      React.createElement("p", null, `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`),
-      React.createElement("button", { onClick: this.startTimer }, "Start"),
-      React.createElement("button", { onClick: this.stopTimer }, "Stop"),
-      React.createElement("button", { onClick: this.resetTimer }, "Reset"),
+    return createElement("div", null, [
+      createElement("h1", null, "Pomodoro Timer"),
+      createElement("p", null, `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`),
+      createElement("button", { onClick: this.startTimer }, "Start"),
+      createElement("button", { onClick: this.stopTimer }, "Stop"),
+      createElement("button", { onClick: this.resetTimer }, "Reset"),
     ]);
   }
 }
+
 
 ReactDOM.render(React.createElement(PomodoroTimer), document.getElementById("root"));
 
